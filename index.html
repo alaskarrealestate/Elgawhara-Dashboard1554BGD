@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>خريطة البلكات التفاعلية - مجموعة العسكر</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1565c0">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
+<style>
+body {
+  margin:0;
+  font-family:"Segoe UI", Tahoma, Arial;
+  background:#f2f4f7;
+}
+#container {
+  display:flex;
+  flex-direction:row-reverse;
+  height:100vh;
+}
+#map {
+  flex:1;
+}
+#sidebar {
+  width:360px;
+  background:#fff;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  overflow-y:auto;
+  box-shadow:-3px 0 12px rgba(0,0,0,0.15);
+}
+.logo, .footer-logo {
+  text-align:center;
+}
+.logo img {
+  width:140px;
+}
+.footer-logo img {
+  width:150px;
+  margin-top:20px;
+}
+.title {
+  font-size:18px;
+  font-weight:bold;
+  margin:10px 0;
+  text-align:center;
+}
+.sectors {
+  display:flex;
+  gap:6px;
+}
+.sector-btn {
+  flex:1;
+  padding:8px;
+  border-radius:8px;
+  text-align:center;
+  cursor:pointer;
+  background:#e0e0e0;
+  font-weight:bold;
+}
+.sector-btn.active {
+  background:#1565c0;
+  color:#fff;
+}
+select, button {
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
+  margin-top:8px;
+  cursor:pointer;
+}
+button {
+  background:#c62828;
+  color:#fff;
+  font-weight:bold;
+}
+.stats {
+  margin-top:15px;
+  background:#f3f6f9;
+  border-radius:10px;
+  padding:12px;
+}
+.stat {
+  font-size:16px;
+  margin:6px 0;
+}
+.leaflet-tooltip.custom-tooltip {
+  background:#263238;
+  color:#fff;
+  padding:10px;
+  border-radius:8px;
+  font-size:13px;
+}
+@media (max-width:768px){
+  #container { flex-direction:column-reverse; }
+  #sidebar { width:100%; max-height:40vh; }
+  #map { height:60vh; }
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+
+  <div id="sidebar">
+
+    <div class="logo">
+      <img src="logo_alsakar.png">
+    </div>
+
+    <div class="title">القطاعات</div>
+    <div class="sectors">
+      <div class="sector-btn" data-sector="B">B</div>
+      <div class="sector-btn" data-sector="G">G</div>
+      <div class="sector-btn" data-sector="D">D</div>
+    </div>
+
+    <div class="title">رقم البلك</div>
+    <select id="blockSelect">
+      <option value="">اختر البلك</option>
+    </select>
+
+    <button id="clearBtn">إلغاء التحديد</button>
+
+    <div class="stats">
+      <div class="title">لوحة الإحصائيات</div>
+      <div class="stat" id="stat1"></div>
+      <div class="stat" id="stat2"></div>
+      <div class="stat" id="stat3"></div>
+      <div class="stat" id="stat4"></div>
+      <div class="stat" id="stat5"></div>
+    </div>
+
+    <div class="footer-logo">
+      <img src="logo_jawhara.png">
+    </div>
+
+  </div>
+
+  <div id="map"></div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script>
+// ======= PWA =======
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js');
+  });
+}
+
+// ======= MAP =======
+const map = L.map('map').setView([24.17556,47.27167],15);
+L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+).addTo(map);
+
+// ======= HELPERS =======
+function translateUsage(val){
+  if(!val) return 'غير محدد';
+  val = val.toLowerCase().trim();
+  if(val === 'commercial') return 'تجاري';
+  if(val === 'residential') return 'سكني';
+  return val;
+}
+function fmt(n){
+  return Number(n).toLocaleString('en-US',{minimumFractionDigits:2});
+}
+
+// ======= DATA =======
+let all = [];
+let currentSector = null;
+let currentBlock = null;
+
+const blockSelect = document.getElementById('blockSelect');
+
+Papa.parse('plots.csv',{
+  download:true,
+  header:true,
+  complete:r=>{
+    r.data.forEach(d=>{
+      if(!d.lat || !d.lng) return;
+
+      const color = d.usage === 'commercial' ? '#c62828' : '#1565c0';
+
+      const m = L.circleMarker([+d.lat,+d.lng],{
+        radius:7,color,fillColor:color,fillOpacity:0.9
+      });
+
+      m.bindTooltip(`
+        <b>القطاع:</b> ${d.sector}<br>
+        <b>رقم البلك:</b> ${d.block}<br>
+        <b>النوع:</b> ${translateUsage(d.usage)}<br>
+        <b>المساحة:</b> ${fmt(d.area)} م²<br>
+        <b>عدد القطع:</b> ${d.plots_count}
+      `,{sticky:true,className:'custom-tooltip'});
+
+      all.push({m,d});
+    });
+  }
+});
+
+// ======= UPDATE =======
+function update(){
+  let filtered = all.filter(o =>
+    (!currentSector || o.d.sector === currentSector) &&
+    (!currentBlock || o.d.block === currentBlock)
+  );
+
+  all.forEach(o => map.removeLayer(o.m));
+  filtered.forEach(o => o.m.addTo(map));
+
+  blockSelect.innerHTML = '<option value="">اختر البلك</option>';
+  if(currentSector){
+    [...new Set(all.filter(o=>o.d.sector===currentSector).map(o=>o.d.block))]
+      .forEach(b=>{
+        blockSelect.innerHTML += `<option value="${b}">${b}</option>`;
+      });
+  }
+
+  if(currentBlock && filtered[0]){
+    const d = filtered[0].d;
+    stat1.innerHTML = `<b>القطاع:</b> ${d.sector}`;
+    stat2.innerHTML = `<b>رقم البلك:</b> ${d.block}`;
+    stat3.innerHTML = `<b>النوع:</b> ${translateUsage(d.usage)}`;
+    stat4.innerHTML = `<b>المساحة:</b> ${fmt(d.area)} م²`;
+    stat5.innerHTML = `<b>عدد القطع:</b> ${d.plots_count}`;
+    map.setView([+d.lat,+d.lng],18);
+  } else if(currentSector){
+    stat1.innerHTML = `<b>عدد البلكات:</b> ${filtered.length}`;
+    stat2.innerHTML = `<b>إجمالي المساحة:</b> ${fmt(filtered.reduce((s,o)=>s+ +o.d.area,0))} م²`;
+    stat3.innerHTML = stat4.innerHTML = stat5.innerHTML = '';
+    map.setView([24.17556,47.27167],15);
+  } else {
+    stat1.innerHTML = stat2.innerHTML = stat3.innerHTML = stat4.innerHTML = stat5.innerHTML = '';
+    map.setView([24.17556,47.27167],15);
+  }
+}
+
+// ======= EVENTS =======
+document.querySelectorAll('.sector-btn').forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll('.sector-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    currentSector = b.dataset.sector;
+    currentBlock = null;
+    update();
+  };
+});
+
+blockSelect.onchange = e=>{
+  currentBlock = e.target.value || null;
+  update();
+};
+
+document.getElementById('clearBtn').onclick = ()=>{
+  currentSector = null;
+  currentBlock = null;
+  blockSelect.innerHTML = '<option value="">اختر البلك</option>';
+  document.querySelectorAll('.sector-btn').forEach(x=>x.classList.remove('active'));
+  update();
+};
+</script>
+
+</body>
+</html>
