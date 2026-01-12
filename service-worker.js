@@ -1,7 +1,7 @@
 // service-worker.js
 
 // رقم الكاش ديناميكي: كل تحديث على الكود يغير هذا الرقم
-const CACHE_VERSION = 'v5';  // زد الرقم عند كل تحديث مستقبلي
+const CACHE_VERSION = 'v6';  // زد الرقم عند كل تحديث مستقبلي
 const CACHE_NAME = `plots-map-${CACHE_VERSION}`;
 
 const urlsToCache = [
