@@ -1,49 +1,59 @@
-// ===== Service Worker لإدارة PWA وتحديث التطبيق تلقائياً =====
+// service-worker.js
 
-// رقم الإصدار الخاص بالكاش
-// قم بزيادة الرقم عند كل تحديث رئيسي للملفات
-const CACHE_NAME = 'plots-map-v4';  // v4 ← زد الرقم عند كل تحديث مستقبلي
+// رقم الكاش ديناميكي: كل تحديث على الكود يغير هذا الرقم
+const CACHE_VERSION = 'v5';  // زد الرقم عند كل تحديث مستقبلي
+const CACHE_NAME = `plots-map-${CACHE_VERSION}`;
 
-// الملفات التي سيتم تخزينها في الكاش
 const urlsToCache = [
   '/',
   '/index.html',
-  '/plots.csv',
+  '/favicon.ico',
+  '/manifest.json',
   '/logo_alsakar.png',
   '/logo_jawhara.png',
-  '/favicon.ico',
-  '/manifest.json'
+  '/plots.csv',
+  '/service-worker.js',
+  'https://unpkg.com/leaflet/dist/leaflet.css',
+  'https://unpkg.com/leaflet/dist/leaflet.js',
+  'https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css',
+  'https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css',
+  'https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js',
+  'https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js',
+  'https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@700&display=swap'
 ];
 
-// عند تثبيت الـ Service Worker، قم بتخزين الملفات في الكاش
+// ===== Install Event =====
 self.addEventListener('install', event => {
+  console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting()) // فرض التفعيل الفوري
+      .then(cache => {
+        console.log('Service Worker: Caching files');
+        return cache.addAll(urlsToCache);
+      })
+      .then(() => self.skipWaiting())
   );
 });
 
-// تنشيط الـ Service Worker وحذف الكاش القديم إذا كان موجود
+// ===== Activate Event =====
 self.addEventListener('activate', event => {
+  console.log('Service Worker: Activated');
   event.waitUntil(
-    caches.keys().then(cacheNames =>
-      Promise.all(
-        cacheNames.map(name => {
-          if (name !== CACHE_NAME) {
-            return caches.delete(name); // حذف أي كاش قديم
-          }
-        })
-      )
-    )
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+      );
+    })
   );
-  self.clients.claim();
+  return self.clients.claim();
 });
 
-// التقاط طلبات الشبكة واسترجاع الملفات من الكاش عند عدم توفر الإنترنت
+// ===== Fetch Event =====
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+    caches.match(event.request).then(cacheRes => {
+      return cacheRes || fetch(event.request);
+    })
   );
 });
