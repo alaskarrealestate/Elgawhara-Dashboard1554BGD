@@ -6,91 +6,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1565c0">
-<link rel="icon" href="favicon.ico" type="image/x-icon">
+<meta name="theme-color" content="#2575fc">
+<link rel="icon" href="favicon.ico">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css">
-
 <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@700&display=swap" rel="stylesheet">
 
 <style>
-body{
-  margin:0;
-  font-family:"Segoe UI",Tahoma,Arial;
-  background:#f2f4f7;
-  -webkit-tap-highlight-color: transparent;
-}
+body{margin:0;font-family:"Segoe UI",Tahoma,Arial;background:#f2f4f7;}
 
-/* ======= شريط علوي ثابت ======= */
+/* ===== الشريط العلوي ===== */
 #topbar{
   position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  height:70px;
-  background: linear-gradient(90deg,#1565c0,#42a5f5);
-  color:#fff;
+  top:0; left:0; right:0;
+  height:72px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 12px;
+  padding:0 14px;
   z-index:1000;
-  box-shadow:0 2px 8px rgba(0,0,0,0.2);
-  flex-wrap:wrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+  background: linear-gradient(90deg,#6a11cb,#2575fc);
 }
-#topbar img{height:42px;}
-#topbar .subtitle{
-  font-family: 'Scheherazade New', serif;
-  font-size:16px;
-  font-weight:700;
-  margin-right:8px;
+#topbar .right-section{
+  display:flex;
+  align-items:center;
+  gap:10px;
   white-space:nowrap;
+  overflow:hidden;
 }
-
+#topbar .right-section img{height:50px;}
+#topbar .subtitle{
+  font-family:'Scheherazade New',serif;
+  font-size:20px;
+  font-weight:700;
+  color:#fff;
+}
 #installBtnTop{
-  background:#fff;
-  color:#1565c0;
+  background:#ff9800;
+  color:#fff;
   border:none;
   border-radius:6px;
   padding:6px 12px;
-  cursor:pointer;
-  font-weight:bold;
   font-size:14px;
+  cursor:pointer;
+  flex-shrink:0;
 }
 
-/* ======= الحاوية والجانب ======= */
-#container{
-  display:flex;
-  flex-direction:row-reverse;
-  height:100vh;
-  margin-top:70px;
-}
+/* ===== التخطيط ===== */
+#container{display:flex;flex-direction:row-reverse;height:100vh;margin-top:72px;}
 #map{flex:1;}
-#sidebar{
-  width:360px;
-  background:#fff;
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  overflow-y:auto;
-  box-shadow:-3px 0 10px rgba(0,0,0,0.15);
-  position:sticky;
-  top:0;
-  touch-action: pan-y;
-}
+#sidebar{width:360px;background:#fff;padding:12px;overflow-y:auto;box-shadow:-3px 0 10px rgba(0,0,0,.12);}
 
-/* ======= شعار مخطط الجوهرة خارج البيانات ======= */
-.logo-outside{
-  text-align:center;
-  margin-bottom:10px;
-}
-.logo-outside img{
-  width:120px; /* تم تصغير الشعار */
-}
-
-/* ======= لوحة بيانات مخطط الجوهرة ======= */
+/* ===== عناصر جانبية ===== */
+.logo-outside{text-align:center;margin-bottom:10px;}
+.logo-outside img{width:120px;}
 .fixed-box{
   background:#f8fafc;
   border-radius:12px;
@@ -98,193 +68,128 @@ body{
   margin-bottom:12px;
   border:1px solid #e0e0e0;
 }
-.fixed-box h3{
-  margin:0 0 6px;
-  font-size:15px;
-  color:#1565c0;
-  text-align:center;
-  font-weight:bold;
-}
-.fixed-item{
-  font-size:13px;
-  margin:4px 0;
-  word-break:break-word;
-}
+.fixed-box h3{margin:0 0 6px;text-align:center;color:#444;}
+.fixed-item{font-size:14px;margin:4px 0;}
+.title{font-size:17px;font-weight:bold;text-align:center;margin:10px 0 6px;}
 
-/* ======= عناوين مركزية ======= */
-.title{
-  font-size:17px;
-  font-weight:bold;
-  margin:12px 0 6px;
-  text-align:center; /* تعديل: جعل العنوان في المنتصف */
-}
-
-/* ======= أزرار القطاعات ======= */
-.sectors{
-  display:flex;
-  gap:6px;
-  margin-top:8px;
-}
+/* ===== القطاعات ===== */
+.sectors{display:flex;gap:6px;}
 .sector-btn{
   flex:1;
-  padding:10px;
-  border-radius:10px;
-  text-align:center;
-  cursor:pointer;
   background:#e0e0e0;
-  font-weight:bold;
-  font-size:15px;
-  touch-action: manipulation;
-  transition:0.2s;
-}
-.sector-btn.active{
-  background:#1565c0;
-  color:#fff;
-}
-
-/* ======= مربع اختيار البلك ======= */
-select{
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  font-size:15px;
-  margin-top:8px;
-  cursor:pointer;
-}
-
-/* ======= زر إلغاء التحديد ======= */
-#clearBtn{
-  background:#c62828;
-  color:#fff;
-  font-weight:bold;
-  border:none;
-  border-radius:8px;
-  padding:10px;
-  margin-top:8px;
-  cursor:pointer;
-  font-size:15px;
-}
-
-/* ======= الإحصائيات ======= */
-.stats{
-  margin-top:12px;
-  background:#f3f6f9;
   border-radius:10px;
   padding:10px;
+  text-align:center;
+  cursor:pointer;
+  font-weight:bold;
 }
+.sector-btn.active{background:#616161;color:#fff;}
+select,button{width:100%;padding:10px;font-size:15px;border-radius:8px;margin-top:8px;}
+#clearBtn{background:#c62828;color:#fff;border:none;}
+
+/* ===== الإحصائيات ===== */
+.stats{background:#f3f6f9;border-radius:10px;padding:10px;margin-top:10px;}
 .stat{font-size:14px;margin:4px 0;}
+.footer-logo{text-align:center;margin:14px 0;}
+.footer-logo img{width:80px;}
+.contact-box{text-align:center;}
 
-/* ======= شعار العسكر أسفل sidebar ======= */
-.footer-logo{
+/* ===== دوائر البلكات ===== */
+.leaflet-marker-icon div{
+  border:2px solid #fff;
+  border-radius:50%;
+  width:28px;
+  height:28px;
+  line-height:28px;
   text-align:center;
-  margin-top:14px;
-}
-.footer-logo img{
-  width:80px; /* حجم مناسب للشاشة */
-}
-
-/* ======= صندوق التواصل ======= */
-.contact-box{
-  margin-top:auto;
-  text-align:center;
-}
-.contact-box .fixed-item{
+  font-weight:bold;
+  color:#fff;
   font-size:14px;
-  margin:2px 0;
+  transition: all 0.3s ease;
+}
+.glow{
+  box-shadow:0 0 12px 4px rgba(255,255,255,0.9);
+  transform: scale(1.4);
 }
 
-/* ======= Tooltip ======= */
+/* ===== tooltip ===== */
 .leaflet-tooltip.custom-tooltip{
   background:#263238;
   color:#fff;
-  padding:8px;
   border-radius:8px;
+  padding:8px;
   font-size:12px;
 }
 
-/* ======= التوافق مع الشاشات الصغيرة ======= */
+/* ===== جوال ===== */
 @media(max-width:768px){
   #container{flex-direction:column-reverse;}
-  #sidebar{width:100%;max-height:50vh;position:relative;top:0;padding:8px;}
+  #sidebar{width:100%;max-height:50vh;}
   #map{height:50vh;}
-  #installBtnTop{font-size:16px;padding:8px;}
-  .sector-btn{font-size:16px;padding:12px;}
-  .stats,.fixed-box,.contact-box{font-size:14px;padding:8px;}
+  #topbar{height:56px;padding:0 10px;}
+  #topbar img{height:40px;}
+  .subtitle{font-size:16px;}
+  #installBtnTop{padding:5px 10px;font-size:12px;}
 }
 </style>
 </head>
 
 <body>
-
-<!-- ======= شريط علوي ثابت ======= -->
 <div id="topbar">
-  <div style="display:flex;align-items:center;flex-wrap:wrap;">
-    <img src="logo_alsakar.png">
+  <button id="installBtnTop">📲 تثبيت</button>
+  <div class="right-section">
+    <img src="logo_alsakar.png" alt="Logo">
     <span class="subtitle">مجموعة صالح عبدالله العسكر للتطوير والاستثمار العقاري</span>
   </div>
-  <button id="installBtnTop">📲 تثبيت</button>
 </div>
 
 <div id="container">
-<div id="sidebar">
+  <div id="sidebar">
+    <div class="logo-outside"><img src="logo_jawhara.png" alt="Logo Jawhara"></div>
 
-  <!-- شعار مخطط الجوهرة خارج البيانات -->
-  <div class="logo-outside">
-    <img src="logo_jawhara.png" alt="مخطط الجوهرة">
+    <div class="fixed-box">
+      <h3>بيانات مخطط الجوهرة</h3>
+      <div class="fixed-item"><b>رقم الاعتماد:</b> 1554</div>
+      <div class="fixed-item" id="fx1"></div>
+      <div class="fixed-item" id="fx2"></div>
+      <div class="fixed-item" id="fx3"></div>
+      <div class="fixed-item" id="fx4"></div>
+      <div class="fixed-item" id="fx5"></div>
+    </div>
+
+    <div class="title">القطاعات</div>
+    <div class="sectors">
+      <div class="sector-btn" data-sector="B">B</div>
+      <div class="sector-btn" data-sector="G">G</div>
+      <div class="sector-btn" data-sector="D">D</div>
+    </div>
+
+    <div class="title">رقم البلك</div>
+    <select id="blockSelect"><option value="">اختر البلك</option></select>
+    <button id="clearBtn">إلغاء التحديد</button>
+
+    <div class="stats">
+      <div class="title">لوحة الإحصائيات</div>
+      <div class="stat" id="stat1"></div>
+      <div class="stat" id="stat2"></div>
+      <div class="stat" id="stat3"></div>
+      <div class="stat" id="stat4"></div>
+      <div class="stat" id="stat5"></div>
+    </div>
+
+    <div class="footer-logo"><img src="logo_alsakar.png" alt="Logo Footer"></div>
+    <div class="fixed-box contact-box">
+      <h3>للتواصل والاستفسار</h3>
+      <div class="fixed-item">📞 0505100124</div>
+      <div class="fixed-item">📞 0555101067</div>
+      <div class="fixed-item">✉ alaskar_group@yahoo.com</div>
+    </div>
   </div>
 
-  <!-- لوحة بيانات مخطط الجوهرة -->
-  <div class="fixed-box">
-    <h3>بيانات مخطط الجوهرة</h3>
-    <div class="fixed-item"><b>رقم الاعتماد:</b> 1554</div>
-    <div class="fixed-item" id="fx1"></div>
-    <div class="fixed-item" id="fx2"></div>
-    <div class="fixed-item" id="fx3"></div>
-    <div class="fixed-item" id="fx4"></div>
-    <div class="fixed-item" id="fx5"></div>
-  </div>
-
-  <div class="title">القطاعات</div>
-  <div class="sectors">
-    <div class="sector-btn" data-sector="B">B</div>
-    <div class="sector-btn" data-sector="G">G</div>
-    <div class="sector-btn" data-sector="D">D</div>
-  </div>
-
-  <div class="title">رقم البلك</div>
-  <select id="blockSelect">
-    <option value="">اختر البلك</option>
-  </select>
-
-  <button id="clearBtn">إلغاء التحديد</button>
-
-  <div class="stats">
-    <div class="title">لوحة الإحصائيات</div>
-    <div class="stat" id="stat1"></div>
-    <div class="stat" id="stat2"></div>
-    <div class="stat" id="stat3"></div>
-    <div class="stat" id="stat4"></div>
-    <div class="stat" id="stat5"></div>
-  </div>
-
-  <div class="footer-logo">
-    <img src="logo_alsakar.png">
-  </div>
-
-  <div class="fixed-box contact-box">
-    <h3>للتواصل والاستفسار</h3>
-    <div class="fixed-item">📞 0505100124</div>
-    <div class="fixed-item">📞 0555101067</div>
-    <div class="fixed-item">✉ alaskar_group@yahoo.com</div>
-  </div>
-
-</div>
-
-<div id="map"></div>
+  <div id="map"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
@@ -302,127 +207,104 @@ window.addEventListener('beforeinstallprompt',e=>{
   installBtnTop.style.display='block';
 });
 
-if('serviceWorker'in navigator){
+if('serviceWorker' in navigator){
   navigator.serviceWorker.register('service-worker.js');
 }
 
 const map=L.map('map').setView([24.17556,47.27167],15);
-const cluster=L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:17});
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
 
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSa4Qk4RNs7zPDG6RWfjFXPLGWzSHsjpc_YNic199mkg7HMItxbzfzwT0Y_KYd-zWucMCg-y2Ac06QW/pub?output=csv";
 const fmt=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2});
 const tr=v=>v==='commercial'?'تجاري':'سكني';
+const STATUS_LABEL={available:"متاح",reserved:"محجوز",sold:"تم البيع"};
+const TYPE_COLOR={commercial:"#2e7d32",residential:"#1976d2"};
 
 let all=[],currentSector=null,currentBlock=null;
 const blockSelect=document.getElementById('blockSelect');
 
-Papa.parse('plots.csv',{
- download:true,header:true,
- complete:r=>{
-  let bc=0,br=0,pc=0,pr=0,area=0;
-  r.data.forEach(d=>{
-    if(!d.lat||!d.lng)return;
+// تحميل البيانات وإنشاء العلامات
+Papa.parse(SHEET_URL,{download:true,header:true,complete:res=>{
+  let area=0,bc=0,br=0,pc=0,pr=0;
+
+  res.data.forEach(d=>{
+    if(!d.lat||!d.lng) return;
     area+=+d.area;
     d.usage==='commercial'?(bc++,pc+=+d.plots_count):(br++,pr+=+d.plots_count);
 
-    const c=d.usage==='commercial'?'#c62828':'#1565c0';
-
-    // دائرة تعرض رقم البلك بدل عدد القطع
+    const color=TYPE_COLOR[d.usage]||"#607d8b";
     const icon=L.divIcon({
-      html:`<div style="
-        background:${c};
-        color:#fff;
-        font-size:12px;
-        font-weight:bold;
-        text-align:center;
-        border-radius:50%;
-        width:26px;
-        height:26px;
-        line-height:26px;
-        border:2px solid #fff;
-        box-shadow:0 1px 3px rgba(0,0,0,0.4);
-      ">${d.block}</div>`,
-      className:'custom-div-icon',
-      iconSize:[26,26],
-      iconAnchor:[13,13]
+      html:`<div style="background:${color};border:2px solid #fff;color:#fff;">${d.block}</div>`,
+      className:'',iconSize:[28,28],iconAnchor:[14,14]
     });
 
-    const m=L.marker([+d.lat,+d.lng],{icon:icon})
-      .bindTooltip(`
-        <b>القطاع:</b> ${d.sector}<br>
-        <b>رقم البلك:</b> ${d.block}<br>
-        <b>النوع:</b> ${tr(d.usage)}<br>
-        <b>المساحة:</b> ${fmt(d.area)} م²<br>
-        <b>عدد القطع:</b> ${d.plots_count}
-      `,{sticky:true,className:'custom-tooltip'});
+    const marker=L.marker([+d.lat,+d.lng],{icon}).bindTooltip(
+      `<b>القطاع:</b> ${d.sector}<br><b>البلك:</b> ${d.block}<br><b>النوع:</b> ${tr(d.usage)}<br><b>المساحة:</b> ${fmt(d.area)} م²<br><b>عدد القطع:</b> ${d.plots_count}<br><b>الحالة:</b> ${STATUS_LABEL[d.status]||"غير محدد"}`,
+      {sticky:true,className:'custom-tooltip'}
+    );
 
-    all.push({m,d});
-    cluster.addLayer(m);
+    marker.on('click', function(){
+      const div = this._icon.querySelector('div');
+      div.classList.add('glow');
+      this.openTooltip();
+      map.flyTo(this.getLatLng(),18,{duration:1.2});
+      setTimeout(()=>div.classList.remove('glow'),1000);
+    });
 
-    if(!Array.from(blockSelect.options).some(o=>o.value===d.block)){
-        blockSelect.innerHTML+=`<option value="${d.block}">${d.block}</option>`;
-    }
+    // إضافة خاصية العرض/الإخفاء
+    marker._visible=true;
+
+    all.push({marker,data:d});
+
+    if(![...blockSelect.options].some(o=>o.value===d.block))
+      blockSelect.innerHTML+=`<option value="${d.block}">${d.block}</option>`;
+
+    marker.addTo(map);
   });
-  map.addLayer(cluster);
 
   fx1.innerHTML=`عدد البلكات التجارية: ${bc}`;
   fx2.innerHTML=`عدد البلكات السكنية: ${br}`;
   fx3.innerHTML=`عدد القطع التجارية: ${pc}`;
   fx4.innerHTML=`عدد القطع السكنية: ${pr}`;
   fx5.innerHTML=`المساحة الإجمالية: ${fmt(area)} م²`;
- }
-});
+}});
 
+// تحديث العلامات: إظهار/إخفاء فقط
 function update(){
-  let filtered=all.filter(o=>{
-    return (!currentSector || o.d.sector===currentSector) &&
-           (!currentBlock || o.d.block===currentBlock);
+  all.forEach(o=>{
+    const visible = (!currentSector || o.data.sector===currentSector) && (!currentBlock || o.data.block===currentBlock);
+    if(visible && !o._visible){
+      o.marker.addTo(map);
+      o._visible=true;
+    } else if(!visible && o._visible){
+      map.removeLayer(o.marker);
+      o._visible=false;
+    }
   });
-  cluster.clearLayers();
-  filtered.forEach(o=>cluster.addLayer(o.m));
 
-  if(currentBlock && filtered[0]){
-    const d=filtered[0].d;
+  if(currentBlock){
+    const d = all.find(o=>o.data.block===currentBlock).data;
     stat1.innerHTML=`<b>القطاع:</b> ${d.sector}`;
-    stat2.innerHTML=`<b>رقم البلك:</b> ${d.block}`;
-    stat3.innerHTML=`<b>النوع:</b> ${tr(d.usage)}`;
+    stat2.innerHTML=`<b>البلك:</b> ${d.block} (${tr(d.usage)})`;
+    stat3.innerHTML=`<b>الحالة:</b> ${STATUS_LABEL[d.status]}`;
     stat4.innerHTML=`<b>المساحة:</b> ${fmt(d.area)} م²`;
     stat5.innerHTML=`<b>عدد القطع:</b> ${d.plots_count}`;
-    map.setView([+d.lat,+d.lng],18);
-  } else if(currentSector){
-    stat1.innerHTML=`عدد البلكات: ${filtered.length}`;
-    stat2.innerHTML=`إجمالي المساحة: ${fmt(filtered.reduce((s,o)=>s+ +o.d.area,0))} م²`;
-    stat3.innerHTML=stat4.innerHTML=stat5.innerHTML='';
-    map.setView([24.17556,47.27167],15);
-  } else{
+    map.flyTo([+d.lat,+d.lng],18,{duration:1.2});
+  } else {
     stat1.innerHTML=stat2.innerHTML=stat3.innerHTML=stat4.innerHTML=stat5.innerHTML='';
     map.setView([24.17556,47.27167],15);
   }
 }
 
-document.querySelectorAll('.sector-btn').forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll('.sector-btn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    currentSector=b.dataset.sector;
-    currentBlock=null;
-    update();
-  };
-});
-
-blockSelect.onchange=e=>{
-  currentBlock=e.target.value||null;
-  update();
-};
-
-document.getElementById('clearBtn').onclick=()=>{
-  currentSector=null;
-  currentBlock=null;
-  blockSelect.value='';
+document.querySelectorAll('.sector-btn').forEach(b=>{b.onclick=()=>{
   document.querySelectorAll('.sector-btn').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  currentSector=b.dataset.sector;
+  currentBlock=null;
   update();
-};
+}});
+blockSelect.onchange=e=>{currentBlock=e.target.value||null;update();};
+clearBtn.onclick=()=>{currentSector=currentBlock=null;blockSelect.value='';document.querySelectorAll('.sector-btn').forEach(x=>x.classList.remove('active'));update();};
 </script>
-
 </body>
 </html>
